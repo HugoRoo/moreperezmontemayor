@@ -22,3 +22,16 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Env — nunca subir al repo
+.env
+
+# Archivos subidos por usuarios
+server/uploads/*
+!server/uploads/.gitkeep
+
+# PDFs generados
+*.pdf
+
+# Claude
+.claude/
