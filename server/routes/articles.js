@@ -47,7 +47,7 @@ router.get('/:slug', async (req, res) => {
 
 router.post('/', authenticate, requireAdmin, upload.single('cover'), async (req, res) => {
   try {
-    const { title, excerpt, content, category, authorName } = req.body
+    const { title, excerpt, content, category, authorName, videoUrl } = req.body
     if (!title) return res.status(400).json({ message: 'El título es requerido' })
 
     let slug = toSlug(title)
@@ -63,6 +63,7 @@ router.post('/', authenticate, requireAdmin, upload.single('cover'), async (req,
       coverUrl,
       category: category?.trim() || '',
       authorName: authorName?.trim() || 'moreperezmontemayor',
+      videoUrl: videoUrl?.trim() || null,
     })
     res.status(201).json(article)
   } catch {

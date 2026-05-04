@@ -1,4 +1,11 @@
 const BASE = (import.meta.env.VITE_API_URL ?? '') + '/api'
+const ORIGIN = import.meta.env.VITE_API_URL ?? ''
+
+export function mediaUrl(path: string | null | undefined): string {
+  if (!path) return ''
+  if (path.startsWith('http')) return path
+  return `${ORIGIN}${path}`
+}
 
 function getToken(): string | null {
   return localStorage.getItem('token')

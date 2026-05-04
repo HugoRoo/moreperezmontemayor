@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { BookOpen, Video, Users, Plus, Check, Trash2, ExternalLink, UserPlus, X, Newspaper } from 'lucide-react'
 import AppNav from '../components/AppNav'
-import { api } from '../lib/api'
+import { api, mediaUrl } from '../lib/api'
 import type { Book, MeetingLink, Profile, Article } from '../types'
 import { useAuth } from '../context/AuthContext'
 
@@ -202,7 +202,7 @@ function BooksTab() {
           {books.map(book => (
             <div key={book._id} className="liquid-glass rounded-xl p-4 flex items-center gap-4">
               {book.coverUrl ? (
-                <img src={book.coverUrl} alt={book.title} className="w-9 object-cover rounded-lg flex-shrink-0" style={{ height: '3.25rem' }} />
+                <img src={mediaUrl(book.coverUrl)} alt={book.title} className="w-9 object-cover rounded-lg flex-shrink-0" style={{ height: '3.25rem' }} />
               ) : (
                 <div className="w-9 bg-white/5 rounded-lg flex items-center justify-center flex-shrink-0" style={{ height: '3.25rem' }}>
                   <BookOpen size={14} className="text-white/20" />
@@ -330,6 +330,7 @@ function BlogTab() {
   const [content, setContent]       = useState('')
   const [category, setCategory]     = useState('')
   const [authorName, setAuthorName] = useState('moreperezmontemayor')
+  const [videoUrl, setVideoUrl]     = useState('')
   const [coverFile, setCoverFile]   = useState<File | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -353,11 +354,12 @@ function BlogTab() {
       formData.append('content', content.trim())
       formData.append('category', category.trim())
       formData.append('authorName', authorName.trim() || 'moreperezmontemayor')
+      if (videoUrl.trim()) formData.append('videoUrl', videoUrl.trim())
       if (coverFile) formData.append('cover', coverFile)
 
       const article = await api.upload<Article>('/articles', formData)
       setArticles(prev => [article, ...prev])
-      setTitle(''); setExcerpt(''); setContent(''); setCategory(''); setAuthorName('moreperezmontemayor')
+      setTitle(''); setExcerpt(''); setContent(''); setCategory(''); setAuthorName('moreperezmontemayor'); setVideoUrl('')
       setCoverFile(null)
       if (fileRef.current) fileRef.current.value = ''
       setShowForm(false)
@@ -443,6 +445,15 @@ function BlogTab() {
             />
           </div>
 
+          <div>
+            <label className="text-white/50 text-xs block mb-1">URL de video (opcional)</label>
+            <input
+              value={videoUrl} onChange={e => setVideoUrl(e.target.value)}
+              placeholder="https://..."
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:border-white/30 transition-colors"
+            />
+          </div>
+
           <div className="flex gap-3 justify-end pt-2">
             <button type="button" onClick={() => setShowForm(false)} className="text-white/50 text-sm px-5 py-2 rounded-full hover:text-white transition-colors">
               Cancelar
@@ -468,7 +479,7 @@ function BlogTab() {
           {articles.map(article => (
             <div key={article._id} className="liquid-glass rounded-xl p-4 flex items-center gap-4">
               {article.coverUrl ? (
-                <img src={article.coverUrl} alt={article.title} className="w-12 h-9 object-cover rounded-lg flex-shrink-0" />
+                <img src={mediaUrl(article.coverUrl)} alt={article.title} className="w-12 h-9 object-cover rounded-lg flex-shrink-0" />
               ) : (
                 <div className="w-12 h-9 bg-white/5 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Newspaper size={14} className="text-white/20" />

@@ -9,6 +9,7 @@ const articleSchema = new mongoose.Schema(
     coverUrl:   { type: String, default: null },
     category:   { type: String, trim: true, default: '' },
     authorName: { type: String, trim: true, default: 'moreperezmontemayor' },
+    videoUrl:   { type: String, default: null },
     published:  { type: Boolean, default: true },
   },
   { timestamps: true },

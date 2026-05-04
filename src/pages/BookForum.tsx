@@ -4,7 +4,7 @@ import { ArrowLeft, MessageSquare, FileDown } from 'lucide-react'
 import AppNav from '../components/AppNav'
 import PostCard from '../components/PostCard'
 import PostForm from '../components/PostForm'
-import { api } from '../lib/api'
+import { api, mediaUrl } from '../lib/api'
 import type { Book, Post } from '../types'
 
 const MONTHS = [
@@ -235,7 +235,7 @@ export default function BookForum() {
         <div className="liquid-glass rounded-2xl p-6 mb-8 flex gap-5 items-start">
           {book.coverUrl && (
             <img
-              src={book.coverUrl}
+              src={mediaUrl(book.coverUrl)}
               alt={book.title}
               className="w-16 h-24 object-cover rounded-lg flex-shrink-0"
             />

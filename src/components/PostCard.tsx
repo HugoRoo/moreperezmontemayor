@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Trash2, Link as LinkIcon } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { api } from '../lib/api'
+import { api, mediaUrl } from '../lib/api'
 import type { Post } from '../types'
 
 function timeAgo(date: string): string {
@@ -69,7 +69,7 @@ export default function PostCard({ post, onDelete }: Props) {
 
       {post.imageUrl && (
         <img
-          src={post.imageUrl}
+          src={mediaUrl(post.imageUrl)}
           alt="Imagen"
           className="mt-4 rounded-xl w-full max-h-80 object-cover"
         />

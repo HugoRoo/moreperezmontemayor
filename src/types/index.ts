@@ -48,6 +48,7 @@ export interface Article {
   excerpt: string
   content: string
   coverUrl: string | null
+  videoUrl: string | null
   category: string
   authorName: string
   published: boolean

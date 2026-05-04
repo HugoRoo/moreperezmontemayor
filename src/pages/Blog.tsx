@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ArrowUpRight } from 'lucide-react'
 import { Globe } from 'lucide-react'
+import { api, mediaUrl } from '../lib/api'
 import type { Article } from '../types'
 
 export default function Blog() {
@@ -9,9 +10,8 @@ export default function Blog() {
   const [loading, setLoading]   = useState(true)
 
   useEffect(() => {
-    fetch('/api/articles')
-      .then(r => r.json())
-      .then((data: Article[]) => { setArticles(data); setLoading(false) })
+    api.get<Article[]>('/articles')
+      .then(data => { setArticles(data); setLoading(false) })
       .catch(() => setLoading(false))
   }, [])
 
@@ -65,7 +65,7 @@ export default function Blog() {
                   {article.coverUrl ? (
                     <div className="aspect-[16/9] overflow-hidden">
                       <img
-                        src={article.coverUrl}
+                        src={mediaUrl(article.coverUrl)}
                         alt={article.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Video, BookOpen, ArrowRight, ExternalLink } from 'lucide-react'
 import AppNav from '../components/AppNav'
-import { api } from '../lib/api'
+import { api, mediaUrl } from '../lib/api'
 import type { Book, MeetingLink } from '../types'
 
 const MONTHS = [
@@ -59,7 +59,7 @@ export default function Dashboard() {
               <div className="liquid-glass rounded-2xl p-6 md:p-8 flex gap-6 h-full">
                 {currentBook.coverUrl && (
                   <img
-                    src={currentBook.coverUrl}
+                    src={mediaUrl(currentBook.coverUrl)}
                     alt={currentBook.title}
                     className="w-24 md:w-32 h-36 md:h-48 object-cover rounded-xl flex-shrink-0"
                   />
@@ -153,7 +153,7 @@ export default function Dashboard() {
                 >
                   {book.coverUrl ? (
                     <img
-                      src={book.coverUrl}
+                      src={mediaUrl(book.coverUrl)}
                       alt={book.title}
                       className="w-full aspect-[3/4] object-cover group-hover:scale-105 transition-transform duration-500"
                     />

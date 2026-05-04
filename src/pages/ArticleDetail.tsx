@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Globe } from 'lucide-react'
+import { api, mediaUrl } from '../lib/api'
 import type { Article } from '../types'
 
 export default function ArticleDetail() {
@@ -10,9 +11,8 @@ export default function ArticleDetail() {
 
   useEffect(() => {
     if (!slug) return
-    fetch(`/api/articles/${slug}`)
-      .then(r => { if (!r.ok) throw new Error(); return r.json() })
-      .then((data: Article) => { setArticle(data); setLoading(false) })
+    api.get<Article>(`/articles/${slug}`)
+      .then(data => { setArticle(data); setLoading(false) })
       .catch(() => { setArticle(null); setLoading(false) })
   }, [slug])
 
@@ -78,7 +78,17 @@ export default function ArticleDetail() {
 
         {article.coverUrl && (
           <div className="rounded-2xl overflow-hidden mb-10 aspect-[16/9]">
-            <img src={article.coverUrl} alt={article.title} className="w-full h-full object-cover" />
+            <img src={mediaUrl(article.coverUrl)} alt={article.title} className="w-full h-full object-cover" />
+          </div>
+        )}
+
+        {article.videoUrl && (
+          <div className="rounded-2xl overflow-hidden mb-10 aspect-[16/9]">
+            <video
+              src={article.videoUrl}
+              controls
+              className="w-full h-full object-cover"
+            />
           </div>
         )}
 
