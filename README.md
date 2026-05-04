@@ -1,6 +1,16 @@
-# Asme — Club de Lectura
+# moreperezmontemayor — Club de Lectura
 
 Plataforma completa de club de lectura construida con React + TypeScript + Vite + Tailwind CSS + Framer Motion + Express + MongoDB.
+
+## URLs en producción
+
+| Servicio | URL |
+|---|---|
+| Landing page | https://moreperezmontemayor.vercel.app |
+| Login | https://moreperezmontemayor.vercel.app/login |
+| Blog | https://moreperezmontemayor.vercel.app/blog |
+| API (backend) | https://moreperezmontemayor.onrender.com |
+| Health check | https://moreperezmontemayor.onrender.com/api/health |
 
 ---
 
@@ -25,31 +35,38 @@ Plataforma completa de club de lectura construida con React + TypeScript + Vite 
 | jsonwebtoken | Auth con JWT |
 | multer | Subida de imágenes |
 
+### Infraestructura (gratuita)
+| Servicio | Uso |
+|---|---|
+| Vercel | Frontend (React/Vite) |
+| Render | Backend (Express/Node.js) |
+| MongoDB Atlas M0 | Base de datos |
+| UptimeRobot | Monitor cada 5 min para evitar que Render se duerma |
+
 ---
 
-## Configuración inicial
+## Configuración local
 
 ### 1. Crear archivo `.env`
-Copia `.env.example` a `.env` y rellena los valores:
 ```
-MONGODB_URI=mongodb://localhost:27017/asme-club
+MONGODB_URI=mongodb://localhost:27017/moreperezmontemayor
 JWT_SECRET=cambia-esta-clave-por-una-muy-segura
 PORT=3001
 CLIENT_URL=http://localhost:5173
 ```
-Para usar MongoDB Atlas (nube) reemplaza `MONGODB_URI` con la cadena de conexión de tu cluster.
+Para producción usar la URI de MongoDB Atlas.
 
 ### 2. Crear el primer administrador
-Ejecuta el script de seed **una sola vez**:
+Ejecutar **una sola vez**:
 ```bash
 npm run seed
 ```
-Crea el usuario `admin@asme.club` con contraseña `Admin123!`.
-**Cambia la contraseña desde el panel Admin → Miembros después del primer login.**
+Crea el usuario `admin@moreperezmontemayor.com` con contraseña `Admin123!`.
+**Cambiar la contraseña desde Admin → Miembros → botón Contraseña.**
 
 ### 3. Iniciar el proyecto
 ```bash
-npm run dev:all   # Inicia frontend (5173) y backend (3001) juntos
+npm run dev:all   # Frontend (5173) + backend (3001) juntos
 ```
 O por separado:
 ```bash
@@ -57,19 +74,17 @@ npm run dev        # Solo frontend
 npm run dev:server # Solo backend (con nodemon)
 ```
 
-### 4. Agregar miembros
-Desde el panel **Admin → Miembros → Crear miembro** puedes crear los participantes directamente. Defines usuario, correo y contraseña inicial.
-
 ---
 
 ## Comandos
 
 ```bash
-npm run dev      # Inicia el servidor de desarrollo en http://localhost:5173
+npm run dev:all  # Inicia frontend y backend juntos
+npm run dev      # Solo frontend en http://localhost:5173
 npm run build    # Compila para producción (tsc + vite build)
 npm run preview  # Previsualiza el build de producción
 npm run lint     # Ejecuta ESLint
-npm run seed     # Crea el usuario administrador inicial (ejecutar una sola vez)
+npm run seed     # Crea el usuario administrador inicial (una sola vez)
 ```
 
 ---
@@ -81,9 +96,9 @@ npm run seed     # Crea el usuario administrador inicial (ejecutar una sola vez)
 | `/` | Público | Landing page principal |
 | `/login` | Público | Inicio de sesión |
 | `/blog` | Público | Listado del Blog Gastronómico |
-| `/blog/:slug` | Público | Artículo individual |
+| `/blog/:slug` | Público | Artículo individual del blog |
 | `/dashboard` | Miembro autenticado | Inicio del club — libro actual + historial |
-| `/libro/:id` | Miembro autenticado | Foro de discusión del libro |
+| `/libro/:id` | Miembro autenticado | Foro de discusión + exportar PDF |
 | `/admin` | Administrador | Panel de administración |
 
 ---
@@ -91,7 +106,7 @@ npm run seed     # Crea el usuario administrador inicial (ejecutar una sola vez)
 ## Estructura de archivos
 
 ```
-readingGroup/
+moreperezmontemayor/
 ├── index.html
 ├── package.json
 ├── tailwind.config.js
@@ -99,11 +114,12 @@ readingGroup/
 ├── vite.config.ts
 ├── tsconfig.json
 ├── tsconfig.app.json
-├── .env
+├── .env                              # No incluido en el repo
+├── .env.example                      # Plantilla vacía de variables
 ├── server/
 │   ├── index.js                      # Entrada Express + conexión MongoDB
 │   ├── seed.js                       # Crea el primer admin (ejecutar una vez)
-│   ├── uploads/                      # Imágenes subidas (portadas, artículos)
+│   ├── uploads/                      # Imágenes subidas (excluidas del repo)
 │   ├── middleware/
 │   │   └── auth.js                   # JWT — authenticate + requireAdmin
 │   ├── models/
@@ -117,16 +133,16 @@ readingGroup/
 │       ├── books.js                  # CRUD libros + marcar como actual
 │       ├── posts.js                  # CRUD mensajes del foro
 │       ├── meeting.js                # GET / POST link de reunión
-│       ├── users.js                  # CRUD miembros
+│       ├── users.js                  # CRUD miembros + cambio de contraseña
 │       └── articles.js               # CRUD artículos del blog
 └── src/
     ├── main.tsx
     ├── index.css                     # Tailwind + .liquid-glass + scroll suave
     ├── App.tsx                       # Router + AuthProvider + todas las rutas
     ├── lib/
-    │   └── api.ts                    # Fetch wrapper con JWT
+    │   └── api.ts                    # Fetch wrapper con JWT (soporta VITE_API_URL)
     ├── types/
-    │   └── index.ts                  # Interfaces TypeScript (Profile, Book, Post, MeetingLink, Article)
+    │   └── index.ts                  # Interfaces: Profile, Book, Post, MeetingLink, Article
     ├── context/
     │   └── AuthContext.tsx           # Estado global de autenticación
     ├── components/
@@ -146,7 +162,7 @@ readingGroup/
         ├── Index.tsx                 # Hero + Navbar de la landing
         ├── Login.tsx                 # Página de inicio de sesión
         ├── Dashboard.tsx             # Inicio del club (libro actual + historial)
-        ├── BookForum.tsx             # Foro de discusión de un libro
+        ├── BookForum.tsx             # Foro de discusión + botón exportar PDF
         ├── AdminPanel.tsx            # Panel admin (4 pestañas)
         ├── Blog.tsx                  # Listado público del blog
         └── ArticleDetail.tsx         # Artículo individual del blog
@@ -190,6 +206,7 @@ readingGroup/
 | GET | `/` | Admin | Listar miembros |
 | POST | `/` | Admin | Crear nuevo miembro |
 | PATCH | `/:id/role` | Admin | Cambiar rol (admin/member) |
+| PATCH | `/:id/password` | Admin | Cambiar contraseña de un miembro |
 | DELETE | `/:id` | Admin | Eliminar miembro |
 
 ### Blog Gastronómico (`/api/articles`)
@@ -222,7 +239,7 @@ coverUrl     String | null
 description  String | null
 month        Number (1–12)
 year         Number
-isCurrent    Boolean (solo uno puede ser true)
+isCurrent    Boolean (solo uno puede ser true a la vez)
 timestamps
 ```
 
@@ -252,33 +269,42 @@ excerpt      String
 content      String
 coverUrl     String | null
 category     String
-authorName   String (default: 'Asme Club')
+authorName   String (default: 'moreperezmontemayor')
 published    Boolean (default: true)
 timestamps
 ```
 
 ---
 
-## Descripción de archivos clave
+## Funcionalidades principales
 
-### `src/index.css`
-- Importa la fuente **Instrument Serif** desde Google Fonts.
-- Incluye `@tailwind base/components/utilities`.
-- Activa `scroll-behavior: smooth` en `html` para que los anclas del navbar funcionen suavemente.
-- Define la clase reutilizable **`.liquid-glass`**: `backdrop-filter: blur`, fondo casi transparente y borde degradado mediante `::before` con `mask-composite: exclude`.
+### Foro de discusión — Exportar PDF
+Cada foro de libro tiene un botón **Exportar PDF** (visible cuando hay al menos una aportación). Al hacer clic abre una nueva pestaña con el documento formateado y lanza el diálogo de impresión del navegador para guardar como PDF.
 
-### `src/App.tsx`
-Router principal. Rutas públicas: `/`, `/login`, `/blog`, `/blog/:slug`. Rutas protegidas: `/dashboard`, `/libro/:id`, `/admin`.
+El PDF incluye:
+- Título del libro, autor y mes/año
+- Total de aportaciones y fecha de generación
+- Cada post con nombre completo, usuario, fecha y contenido
+- Imágenes y links si los hay
+- Pie de página con el nombre del club
 
-### `src/lib/api.ts`
-Wrapper de `fetch` con JWT automático desde `localStorage`. Métodos: `api.get`, `api.post`, `api.patch`, `api.delete`, `api.upload` (multipart).
+### Panel de administración — 4 pestañas
 
-### `src/context/AuthContext.tsx`
-Provee `{ profile, loading, signIn, signOut }`. Al iniciar verifica el token almacenado en `localStorage` llamando a `GET /api/auth/me`.
+| Pestaña | Funciones |
+|---|---|
+| **Libros** | Registrar con portada, marcar libro del mes, eliminar |
+| **Reunión** | Publicar link semanal de videollamada |
+| **Miembros** | Crear, cambiar rol, cambiar contraseña, eliminar |
+| **Blog** | Crear y eliminar artículos con portada |
 
-### `server/middleware/auth.js`
-- `authenticate` — verifica el JWT en el header `Authorization: Bearer <token>` y adjunta `req.user`.
-- `requireAdmin` — verifica que `req.user.role === 'admin'`.
+### Blog Gastronómico
+- El admin crea artículos desde **Admin → Blog → Nuevo artículo**
+- El slug se genera automáticamente desde el título
+- Visible públicamente en `/blog` y en la landing page (últimas 3 entradas)
+- No requiere autenticación para leer
+
+### Acceso por invitación
+El registro público está deshabilitado. Los miembros los crea el administrador desde **Admin → Miembros → Crear miembro**, definiendo usuario, correo y contraseña inicial. La contraseña se puede cambiar desde el mismo panel.
 
 ---
 
@@ -299,56 +325,39 @@ Provee `{ profile, loading, signIn, signOut }`. Al iniciar verifica el token alm
 
 | Enlace | Destino |
 |---|---|
-| Club de Lectura | `/dashboard` (página del club) |
-| Nosotros | `#nosotros` (ancla en la misma página) |
-| Blog Gastronómico | `/blog` (página del blog) |
-| Próximos eventos | `#eventos` (ancla en la misma página) |
-| Contacto | `#contacto` (ancla en la misma página) |
+| Club de Lectura | `/dashboard` |
+| Nosotros | `#nosotros` |
+| Blog Gastronómico | `/blog` |
+| Próximos eventos | `#eventos` |
+| Contacto | `#contacto` |
 | Iniciar sesión | `/login` |
 
-> El acceso al club es **solo por invitación**. El botón "Registrarse" fue eliminado del navbar. Los miembros son creados por el administrador desde **Admin → Miembros → Crear miembro**.
-
 ---
 
-## Panel de administración — Pestañas
+## Despliegue en producción
 
-| Pestaña | Descripción |
+Ver guía completa en `DEPLOY.md`.
+
+### Variables de entorno — Render (backend)
+| Variable | Descripción |
 |---|---|
-| **Libros** | Registrar libros con portada, marcar el libro del mes actual, eliminar |
-| **Reunión** | Publicar el link semanal de videollamada (Google Meet, Zoom, Teams…) |
-| **Miembros** | Crear miembros, cambiar rol admin/member, eliminar |
-| **Blog** | Crear y eliminar artículos del Blog Gastronómico con portada e imagen |
+| `MONGODB_URI` | URI de conexión a MongoDB Atlas |
+| `JWT_SECRET` | Clave secreta para firmar tokens |
+| `PORT` | Puerto del servidor (3001) |
+| `CLIENT_URL` | URL del frontend en Vercel |
 
----
-
-## Blog Gastronómico
-
-### Flujo de publicación
-1. Admin accede a **Panel Admin → Blog → Nuevo artículo**.
-2. Rellena título, categoría, autor, extracto, contenido y portada (imagen).
-3. El slug se genera automáticamente desde el título (sin tildes ni espacios).
-4. El artículo aparece de inmediato en `/blog` y en la sección del blog de la landing.
-
-### Acceso público
-Los endpoints `GET /api/articles` y `GET /api/articles/:slug` son públicos y no requieren autenticación, por lo que el blog es visible para cualquier visitante de la web.
-
----
-
-## Clase `.liquid-glass` — dónde se usa
-
-| Elemento | Componente |
+### Variables de entorno — Vercel (frontend)
+| Variable | Descripción |
 |---|---|
-| Navbar (píldora) | `Index.tsx`, `Blog.tsx`, `ArticleDetail.tsx` |
-| Botón "Iniciar sesión" | `Index.tsx` |
-| Input de email (píldora) | `Index.tsx` |
-| Botón "Lee nuestro manifiesto" | `Index.tsx` |
-| Iconos sociales | `Index.tsx` |
-| Tarjeta "Nuestro Enfoque" | `FeaturedVideoSection.tsx` |
-| Botón "Explorar más" | `FeaturedVideoSection.tsx` |
-| Tarjetas de servicios | `ServicesSection.tsx` |
-| Tarjetas del blog | `BlogSection.tsx`, `Blog.tsx` |
-| Tarjetas del panel admin | `AdminPanel.tsx` |
-| Sección de contacto | `ContactSection.tsx` |
+| `VITE_API_URL` | URL del backend en Render |
+
+### Publicar cambios
+```bash
+git add .
+git commit -m "descripción del cambio"
+git push
+```
+Render y Vercel redesplegan automáticamente en 2–3 minutos.
 
 ---
 
@@ -362,11 +371,12 @@ Los endpoints `GET /api/articles` y `GET /api/articles/:slug` son públicos y no
 | Servicios — Tarjeta 1 | `CARD_1_VIDEO` | `src/components/ServicesSection.tsx` |
 | Servicios — Tarjeta 2 | `CARD_2_VIDEO` | `src/components/ServicesSection.tsx` |
 
+Para cambiar un video, edita la URL de la constante correspondiente en cada archivo.
+
 ---
 
 ## Fuente tipográfica
 
 **Instrument Serif** cargada desde Google Fonts en `src/index.css`.
-Se aplica con `style={{ fontFamily: "'Instrument Serif', serif" }}` en `<h1>`, `<h2>` y `<h3>`.
-Para la versión **italic**, agregar `className="italic"` o usar `<em>`.
-# moreperezmontemayor
+Se aplica con `style={{ fontFamily: "'Instrument Serif', serif" }}` en títulos.
+Para la versión italic, agregar `className="italic"` o usar `<em>`.
