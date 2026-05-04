@@ -1,19 +1,7 @@
 import { Router } from 'express'
-import multer from 'multer'
-import path from 'path'
-import { fileURLToPath } from 'url'
-import fs from 'fs'
 import Post from '../models/Post.js'
 import { authenticate } from '../middleware/auth.js'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const uploadsDir = path.join(__dirname, '..', 'uploads')
-
-const storage = multer.diskStorage({
-  destination: uploadsDir,
-  filename: (req, file, cb) => cb(null, `${Date.now()}${path.extname(file.originalname)}`),
-})
-const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } })
+import { upload, saveFile, deleteFile } from '../lib/cloudinary.js'
 
 const router = Router()
 
@@ -33,7 +21,7 @@ router.post('/book/:bookId', authenticate, upload.single('image'), async (req, r
     const { content, linkUrl } = req.body
     if (!content?.trim()) return res.status(400).json({ message: 'El contenido es requerido' })
 
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null
+    const imageUrl = await saveFile(req.file)
     const post = await Post.create({
       bookId: req.params.bookId,
       author: req.user._id,
@@ -58,10 +46,7 @@ router.delete('/:id', authenticate, async (req, res) => {
       return res.status(403).json({ message: 'Acceso denegado' })
     }
 
-    if (post.imageUrl) {
-      const filePath = path.join(uploadsDir, path.basename(post.imageUrl))
-      fs.unlink(filePath, () => {})
-    }
+    await deleteFile(post.imageUrl)
     await post.deleteOne()
     res.json({ ok: true })
   } catch {

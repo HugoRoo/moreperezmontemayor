@@ -1,19 +1,7 @@
 import { Router } from 'express'
-import multer from 'multer'
-import path from 'path'
-import { fileURLToPath } from 'url'
-import fs from 'fs'
 import Book from '../models/Book.js'
 import { authenticate, requireAdmin } from '../middleware/auth.js'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const uploadsDir = path.join(__dirname, '..', 'uploads')
-
-const storage = multer.diskStorage({
-  destination: uploadsDir,
-  filename: (req, file, cb) => cb(null, `${Date.now()}${path.extname(file.originalname)}`),
-})
-const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } })
+import { upload, saveFile, deleteFile } from '../lib/cloudinary.js'
 
 const router = Router()
 
@@ -41,7 +29,7 @@ router.post('/', authenticate, requireAdmin, upload.single('cover'), async (req,
     const { title, author, description, month, year } = req.body
     if (!title || !author) return res.status(400).json({ message: 'Título y autor son requeridos' })
 
-    const coverUrl = req.file ? `/uploads/${req.file.filename}` : null
+    const coverUrl = await saveFile(req.file)
     const book = await Book.create({
       title: title.trim(),
       author: author.trim(),
@@ -51,7 +39,7 @@ router.post('/', authenticate, requireAdmin, upload.single('cover'), async (req,
       coverUrl,
     })
     res.status(201).json(book)
-  } catch (err) {
+  } catch {
     res.status(500).json({ message: 'Error al crear libro' })
   }
 })
@@ -71,11 +59,7 @@ router.delete('/:id', authenticate, requireAdmin, async (req, res) => {
   try {
     const book = await Book.findById(req.params.id)
     if (!book) return res.status(404).json({ message: 'Libro no encontrado' })
-
-    if (book.coverUrl) {
-      const filePath = path.join(uploadsDir, path.basename(book.coverUrl))
-      fs.unlink(filePath, () => {})
-    }
+    await deleteFile(book.coverUrl)
     await book.deleteOne()
     res.json({ ok: true })
   } catch {

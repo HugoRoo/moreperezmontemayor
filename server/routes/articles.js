@@ -1,19 +1,7 @@
 import { Router } from 'express'
-import multer from 'multer'
-import path from 'path'
-import { fileURLToPath } from 'url'
-import fs from 'fs'
 import Article from '../models/Article.js'
 import { authenticate, requireAdmin } from '../middleware/auth.js'
-
-const __dirname  = path.dirname(fileURLToPath(import.meta.url))
-const uploadsDir = path.join(__dirname, '..', 'uploads')
-
-const storage = multer.diskStorage({
-  destination: uploadsDir,
-  filename: (req, file, cb) => cb(null, `${Date.now()}${path.extname(file.originalname)}`),
-})
-const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } })
+import { upload, saveFile, deleteFile } from '../lib/cloudinary.js'
 
 function toSlug(text) {
   return text
@@ -54,7 +42,7 @@ router.post('/', authenticate, requireAdmin, upload.single('cover'), async (req,
     const existing = await Article.findOne({ slug })
     if (existing) slug = `${slug}-${Date.now()}`
 
-    const coverUrl = req.file ? `/uploads/${req.file.filename}` : null
+    const coverUrl = await saveFile(req.file)
     const article = await Article.create({
       title: title.trim(),
       slug,
@@ -75,11 +63,7 @@ router.delete('/:id', authenticate, requireAdmin, async (req, res) => {
   try {
     const article = await Article.findById(req.params.id)
     if (!article) return res.status(404).json({ message: 'Artículo no encontrado' })
-
-    if (article.coverUrl) {
-      const filePath = path.join(uploadsDir, path.basename(article.coverUrl))
-      fs.unlink(filePath, () => {})
-    }
+    await deleteFile(article.coverUrl)
     await article.deleteOne()
     res.json({ ok: true })
   } catch {
