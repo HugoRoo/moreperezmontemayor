@@ -496,12 +496,55 @@ function BlogTab() {
 }
 
 /* ──────────── MIEMBROS ──────────── */
+function PasswordForm({ memberId, onClose }: { memberId: string; onClose: () => void }) {
+  const [newPassword, setNewPassword] = useState('')
+  const [submitting, setSubmitting]   = useState(false)
+  const [saved, setSaved]             = useState(false)
+  const [error, setError]             = useState('')
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setSubmitting(true)
+    setError('')
+    try {
+      await api.patch(`/users/${memberId}/password`, { password: newPassword })
+      setSaved(true)
+      setNewPassword('')
+      setTimeout(() => { setSaved(false); onClose() }, 1500)
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mt-3 flex flex-col gap-2">
+      <div className="flex gap-2">
+        <input
+          type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)}
+          placeholder="Nueva contraseña (mín. 6 caracteres)" required minLength={6}
+          className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white placeholder:text-white/25 text-sm outline-none focus:border-white/30 transition-colors"
+        />
+        <button type="submit" disabled={submitting} className="bg-white text-black text-xs font-medium rounded-xl px-4 py-2 hover:bg-white/90 transition-colors disabled:opacity-50 flex-shrink-0">
+          {saved ? '✓ Guardado' : submitting ? '...' : 'Guardar'}
+        </button>
+        <button type="button" onClick={onClose} className="text-white/30 hover:text-white p-2 transition-colors flex-shrink-0">
+          <X size={14} />
+        </button>
+      </div>
+      {error && <p className="text-red-400/80 text-xs">{error}</p>}
+    </form>
+  )
+}
+
 function MembersTab() {
   const { profile: currentProfile } = useAuth()
-  const [members, setMembers]   = useState<Profile[]>([])
-  const [loading, setLoading]   = useState(true)
-  const [showForm, setShowForm] = useState(false)
-  const [error, setError]       = useState('')
+  const [members, setMembers]         = useState<Profile[]>([])
+  const [loading, setLoading]         = useState(true)
+  const [showForm, setShowForm]       = useState(false)
+  const [error, setError]             = useState('')
+  const [changingPwdId, setChangingPwdId] = useState<string | null>(null)
 
   const [username, setUsername] = useState('')
   const [email, setEmail]       = useState('')
@@ -609,7 +652,8 @@ function MembersTab() {
         ) : (
           <div className="divide-y divide-white/5">
             {members.map(member => (
-              <div key={member._id} className="flex items-center justify-between px-5 py-4">
+              <div key={member._id} className="px-5 py-4">
+                <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
                     {member.username[0].toUpperCase()}
@@ -623,6 +667,12 @@ function MembersTab() {
                   <span className={`text-xs px-2.5 py-1 rounded-full ${member.role === 'admin' ? 'bg-white/10 text-white/70' : 'bg-white/5 text-white/30'}`}>
                     {member.role === 'admin' ? 'Admin' : 'Miembro'}
                   </span>
+                  <button
+                    onClick={() => setChangingPwdId(changingPwdId === member._id ? null : member._id)}
+                    className="text-white/30 hover:text-white text-xs px-3 py-1 rounded-full border border-white/10 hover:border-white/30 transition-colors hidden sm:block"
+                  >
+                    Contraseña
+                  </button>
                   {member._id !== currentProfile?._id && (
                     <>
                       <button onClick={() => toggleRole(member)} className="text-white/30 hover:text-white text-xs px-3 py-1 rounded-full border border-white/10 hover:border-white/30 transition-colors hidden sm:block">
@@ -634,6 +684,10 @@ function MembersTab() {
                     </>
                   )}
                 </div>
+                </div>
+                {changingPwdId === member._id && (
+                  <PasswordForm memberId={member._id} onClose={() => setChangingPwdId(null)} />
+                )}
               </div>
             ))}
           </div>

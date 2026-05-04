@@ -45,6 +45,21 @@ router.post('/', authenticate, requireAdmin, async (req, res) => {
   }
 })
 
+router.patch('/:id/password', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const { password } = req.body
+    if (!password || password.length < 6) {
+      return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres' })
+    }
+    const passwordHash = await bcrypt.hash(password, 10)
+    const user = await User.findByIdAndUpdate(req.params.id, { passwordHash }, { new: true }).select('-passwordHash')
+    if (!user) return res.status(404).json({ message: 'Usuario no encontrado' })
+    res.json({ ok: true })
+  } catch {
+    res.status(500).json({ message: 'Error al cambiar contraseña' })
+  }
+})
+
 router.patch('/:id/role', authenticate, requireAdmin, async (req, res) => {
   try {
     if (req.params.id === req.user._id.toString()) {
