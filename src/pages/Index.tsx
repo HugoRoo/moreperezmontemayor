@@ -164,7 +164,7 @@ export default function Index() {
         {/* Social icons + Próximos Eventos — pegados al fondo */}
         <div className="flex items-center justify-center gap-4">
           <a
-            href="https://www.facebook.com/moreperezmontemayor"
+            href="https://www.facebook.com/more.funes.9?locale=es_LA"
             target="_blank"
             rel="noopener noreferrer"
             className="liquid-glass rounded-full p-4 text-white/80 hover:text-white hover:bg-white/5 transition-all"
@@ -184,7 +184,7 @@ export default function Index() {
             Próximos Eventos
           </a>
           <a
-            href="https://www.instagram.com/moreperezmontemayor"
+            href="https://www.instagram.com/circulogastronomico.conmore/"
             target="_blank"
             rel="noopener noreferrer"
             className="liquid-glass rounded-full p-4 text-white/80 hover:text-white hover:bg-white/5 transition-all"
