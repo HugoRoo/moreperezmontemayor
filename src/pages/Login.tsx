@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useNavigate, Navigate } from 'react-router-dom'
-import { Globe } from 'lucide-react'
+import { useNavigate, Navigate, Link } from 'react-router-dom'
+import { Globe, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
@@ -36,6 +36,13 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center px-6">
+      <Link
+        to="/"
+        className="absolute top-6 left-6 flex items-center gap-2 text-white/40 hover:text-white text-sm transition-colors"
+      >
+        <ArrowLeft size={15} />
+        Volver al inicio
+      </Link>
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-10">
           <Globe size={32} className="text-white mb-4" />

@@ -1,9 +1,26 @@
 import { useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Globe, ArrowRight, Camera, X as XIcon, BookOpen } from 'lucide-react'
+import { BookOpen } from 'lucide-react'
 
-const HERO_VIDEO =
-  'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260405_074625_a81f018a-956b-43fb-9aee-4d1508e30e6a.mp4'
+const HERO_VIDEO = 'https://res.cloudinary.com/djozjtygj/video/upload/v1778111073/moreperezmontemayor/hero-video.mp4'
+
+function FacebookIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+    </svg>
+  )
+}
+
+function InstagramIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="20" height="20">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" />
+    </svg>
+  )
+}
 
 function animateOpacity(
   el: HTMLVideoElement,
@@ -26,7 +43,7 @@ function animateOpacity(
 }
 
 export default function Index() {
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const videoRef  = useRef<HTMLVideoElement>(null)
   const fadingOut = useRef(false)
 
   useEffect(() => {
@@ -74,86 +91,107 @@ export default function Index() {
       <video
         ref={videoRef}
         src={HERO_VIDEO}
-        className="absolute inset-0 w-full h-full object-cover object-bottom"
+        className="absolute inset-0 w-full h-full object-cover object-center"
         style={{ opacity: 0 }}
         muted
         autoPlay
         playsInline
         preload="auto"
       />
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black/55 z-[1]" />
 
       {/* Navbar */}
       <nav className="relative z-20 px-6 py-6">
-        <div className="liquid-glass rounded-full max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
-          {/* Left */}
-          <div className="flex items-center">
-            <BookOpen size={22} className="text-white" />
-            <span className="text-white font-semibold text-lg ml-2">moreperezmontemayor</span>
-            <div className="hidden lg:flex items-center gap-7 ml-8">
-              <Link to="/dashboard" className="text-white/80 hover:text-white text-sm font-medium transition-colors">Club de Lectura</Link>
-              <a href="#nosotros"   className="text-white/80 hover:text-white text-sm font-medium transition-colors">Nosotros</a>
-              <Link to="/blog"      className="text-white/80 hover:text-white text-sm font-medium transition-colors">Blog Gastronómico</Link>
-              <a href="#eventos"    className="text-white/80 hover:text-white text-sm font-medium transition-colors">Próximos eventos</a>
-              <a href="#contacto"   className="text-white/80 hover:text-white text-sm font-medium transition-colors">Contacto</a>
-            </div>
-          </div>
-          {/* Right */}
-          <div className="flex items-center gap-4">
+        <div className="liquid-glass rounded-full max-w-5xl mx-auto px-6 py-3 flex items-center">
+          <BookOpen size={22} className="text-white flex-shrink-0" />
+          <span className="text-white font-semibold text-lg ml-2 flex-shrink-0">moreperezmontemayor</span>
+          <div className="hidden lg:flex items-center gap-7 ml-8">
+            <a href="#nosotros" className="text-white/80 hover:text-white text-sm font-medium transition-colors">Nosotros</a>
+            <Link to="/blog"    className="text-white/80 hover:text-white text-sm font-medium transition-colors">Blog Gastronómico</Link>
+            <a href="#eventos"  className="text-white/80 hover:text-white text-sm font-medium transition-colors">Próximos eventos</a>
+            <a href="#contacto" className="text-white/80 hover:text-white text-sm font-medium transition-colors">Contacto</a>
             <Link
               to="/login"
-              className="liquid-glass rounded-full px-6 py-2 text-white text-sm font-medium hover:bg-white/5 transition-colors"
+              className="rounded-full px-5 py-2 text-white text-sm font-medium transition-all hover:brightness-110 whitespace-nowrap"
+              style={{
+                background: 'rgba(228,11,138,0.55)',
+                backdropFilter: 'blur(4px)',
+                WebkitBackdropFilter: 'blur(4px)',
+                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.15)',
+              }}
             >
-              Iniciar sesión
+              Ir al club de lectura
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* Hero content */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-12 text-center -translate-y-[20%]">
-        <h1
-          className="text-7xl md:text-8xl lg:text-9xl text-white tracking-tight whitespace-nowrap mb-8"
-          style={{ fontFamily: "'Instrument Serif', serif" }}
-        >
-          Conócelo todo <em className="italic">ahora</em>.
-        </h1>
+      {/* Hero content + social icons — single flex column filling remaining height */}
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-between px-6 pb-10 pt-4 text-center">
 
-        {/* Email input */}
-        <div className="max-w-xl w-full mb-6">
-          <div className="liquid-glass rounded-full pl-6 pr-2 py-2 flex items-center gap-3">
-            <input
-              type="email"
-              placeholder="Ingresa tu correo electrónico"
-              className="flex-1 bg-transparent text-white placeholder:text-white/40 text-sm outline-none"
-            />
-            <button className="bg-white rounded-full p-3 text-black flex items-center justify-center hover:bg-white/90 transition-colors flex-shrink-0">
-              <ArrowRight size={20} />
-            </button>
+        {/* Center block */}
+        <div className="flex-1 flex flex-col items-center justify-center pb-36">
+
+          {/* Title — three lines + botón alineado al tercer renglón */}
+          <div className="mb-8 flex flex-col items-end gap-2">
+            <p
+              className="text-6xl md:text-7xl lg:text-8xl text-white tracking-widest leading-none uppercase self-start mt-px"
+              style={{ fontFamily: "'Lato', sans-serif", fontWeight: 600 }}
+            >
+              Un libro
+            </p>
+            <p
+              className="text-6xl md:text-7xl lg:text-8xl text-white tracking-widest leading-none uppercase"
+              style={{ fontFamily: "'Lato', sans-serif", fontWeight: 300 }}
+            >
+              Se disfruta
+            </p>
+
+            <p
+              className="text-3xl md:text-4xl lg:text-5xl text-white tracking-tight leading-none"
+              style={{ fontFamily: "'Lato', sans-serif", fontWeight: 700 }}
+            >
+              en el sabor de sus <span style={{ color: '#E40B8A' }}>páginas.</span>
+            </p>
+            <p className="text-base md:text-lg text-white leading-relaxed text-right max-w-sm mt-4">
+              Mantente cerca, reflexiona, aporta, comparte y vuelve de este club de lectura, un nuevo círculo donde se refuerza la amistad, la memoría y consume el sabor más delicioso del conocimiento gastronómico.
+            </p>
           </div>
+
         </div>
 
-        {/* Subtitle */}
-        <p className="text-white text-sm leading-relaxed px-4 max-w-md mb-8">
-          Mantente al día con las últimas noticias y perspectivas. Suscríbete a nuestro boletín hoy y nunca te pierdas actualizaciones importantes.
-        </p>
-
-        {/* Manifesto button */}
-        <button className="liquid-glass rounded-full px-8 py-3 text-white text-sm font-medium hover:bg-white/5 transition-colors">
-          Lee nuestro manifiesto
-        </button>
-      </div>
-
-      {/* Social icons footer */}
-      <div className="relative z-10 flex justify-center gap-4 pb-12">
-        <button className="liquid-glass rounded-full p-4 text-white/80 hover:text-white hover:bg-white/5 transition-all">
-          <Camera size={20} />
-        </button>
-        <button className="liquid-glass rounded-full p-4 text-white/80 hover:text-white hover:bg-white/5 transition-all">
-          <XIcon size={20} />
-        </button>
-        <button className="liquid-glass rounded-full p-4 text-white/80 hover:text-white hover:bg-white/5 transition-all">
-          <Globe size={20} />
-        </button>
+        {/* Social icons + Próximos Eventos — pegados al fondo */}
+        <div className="flex items-center justify-center gap-4">
+          <a
+            href="https://www.facebook.com/moreperezmontemayor"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="liquid-glass rounded-full p-4 text-white/80 hover:text-white hover:bg-white/5 transition-all"
+          >
+            <FacebookIcon />
+          </a>
+          <a
+            href="#eventos"
+            className="rounded-full px-6 py-3 text-white text-sm font-medium transition-all hover:brightness-110"
+            style={{
+              background: 'rgba(228,11,138,0.55)',
+              backdropFilter: 'blur(4px)',
+              WebkitBackdropFilter: 'blur(4px)',
+              boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.15)',
+            }}
+          >
+            Próximos Eventos
+          </a>
+          <a
+            href="https://www.instagram.com/moreperezmontemayor"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="liquid-glass rounded-full p-4 text-white/80 hover:text-white hover:bg-white/5 transition-all"
+          >
+            <InstagramIcon />
+          </a>
+        </div>
       </div>
     </div>
   )
