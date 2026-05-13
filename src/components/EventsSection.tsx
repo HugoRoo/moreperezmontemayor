@@ -1,6 +1,5 @@
 import { useRef, useEffect, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { MapPin, Wifi } from 'lucide-react'
 import { api } from '../lib/api'
 import type { ClubEvent } from '../types'
 
@@ -82,12 +81,6 @@ export default function EventsSection() {
                     )}
                     <div className="flex items-center gap-3 mt-3 flex-wrap">
                       <span className="text-white/40 text-xs">{time} hrs</span>
-                      {ev.location && (
-                        <span className="flex items-center gap-1 text-white/40 text-xs">
-                          {ev.type === 'virtual' ? <Wifi size={10} /> : <MapPin size={10} />}
-                          <span className="truncate max-w-[160px]">{ev.location}</span>
-                        </span>
-                      )}
                       <span
                         className="text-xs px-2.5 py-0.5 rounded-full"
                         style={ev.type === 'presencial'

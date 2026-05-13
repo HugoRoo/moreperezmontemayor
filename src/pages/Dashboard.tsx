@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Video, BookOpen, ArrowRight, ExternalLink } from 'lucide-react'
+import { Video, BookOpen, ArrowRight, ExternalLink, MapPin, Wifi } from 'lucide-react'
 import AppNav from '../components/AppNav'
 import { api, mediaUrl } from '../lib/api'
-import type { Book, MeetingLink } from '../types'
+import type { Book, MeetingLink, ClubEvent } from '../types'
 
 const MONTHS = [
   'Enero','Febrero','Marzo','Abril','Mayo','Junio',
@@ -22,16 +22,19 @@ export default function Dashboard() {
   const [books, setBooks]           = useState<Book[]>([])
   const [currentBook, setCurrentBook] = useState<Book | null>(null)
   const [meeting, setMeeting]       = useState<MeetingLink | null>(null)
+  const [events, setEvents]         = useState<ClubEvent[]>([])
   const [loading, setLoading]       = useState(true)
 
   useEffect(() => {
     Promise.all([
       api.get<Book[]>('/books'),
       api.get<MeetingLink | null>('/meeting'),
-    ]).then(([booksData, meetingData]) => {
+      api.get<ClubEvent[]>('/events'),
+    ]).then(([booksData, meetingData, eventsData]) => {
       setBooks(booksData)
       setCurrentBook(booksData.find(b => b.isCurrent) ?? null)
       setMeeting(meetingData)
+      setEvents(eventsData.filter(ev => new Date(ev.date) >= new Date()))
     }).finally(() => setLoading(false))
   }, [])
 
@@ -139,6 +142,58 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+
+        {/* Próximos eventos — solo visible para miembros */}
+        {events.length > 0 && (
+          <div className="mb-16">
+            <p className="text-white/40 text-xs tracking-widest uppercase mb-6">Próximos eventos</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {events.map(ev => {
+                const d     = new Date(ev.date)
+                const day   = d.getDate()
+                const month = MONTHS[d.getMonth()]
+                const time  = d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+                return (
+                  <div key={ev._id} className="liquid-glass rounded-2xl p-5 flex gap-5">
+                    <div className="flex-shrink-0 text-center min-w-[2.5rem]">
+                      <p className="text-white text-2xl font-semibold leading-none">{day}</p>
+                      <p className="text-white/40 text-xs uppercase mt-1">{month.slice(0, 3)}</p>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-sm font-medium">{ev.title}</p>
+                      {ev.description && (
+                        <p className="text-white/50 text-xs mt-1 leading-relaxed line-clamp-2">{ev.description}</p>
+                      )}
+                      <div className="flex items-center gap-3 mt-2 flex-wrap">
+                        <span className="text-white/40 text-xs">{time} hrs</span>
+                        {ev.location && (
+                          ev.type === 'virtual' ? (
+                            <a
+                              href={ev.location}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 text-xs px-3 py-1 rounded-full transition-colors"
+                              style={{ background: 'rgba(228,11,138,0.15)', color: '#E40B8A' }}
+                            >
+                              <Wifi size={10} />
+                              Unirse a la sesión
+                              <ExternalLink size={9} />
+                            </a>
+                          ) : (
+                            <span className="flex items-center gap-1 text-white/40 text-xs">
+                              <MapPin size={10} />
+                              {ev.location}
+                            </span>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Archivo */}
         {archiveBooks.length > 0 && (
