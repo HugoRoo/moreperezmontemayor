@@ -41,6 +41,16 @@ export interface MeetingLink {
   createdAt: string
 }
 
+export interface ClubEvent {
+  _id: string
+  title: string
+  description: string
+  date: string
+  location: string
+  type: 'virtual' | 'presencial'
+  createdAt: string
+}
+
 export interface Article {
   _id: string
   title: string

@@ -11,6 +11,7 @@ import postRoutes    from './routes/posts.js'
 import meetingRoutes from './routes/meeting.js'
 import userRoutes    from './routes/users.js'
 import articleRoutes from './routes/articles.js'
+import eventRoutes   from './routes/events.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -28,6 +29,7 @@ app.use('/api/posts',   postRoutes)
 app.use('/api/meeting', meetingRoutes)
 app.use('/api/users',    userRoutes)
 app.use('/api/articles', articleRoutes)
+app.use('/api/events',   eventRoutes)
 
 app.get('/api/health', (req, res) => res.json({ ok: true }))
 

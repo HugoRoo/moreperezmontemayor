@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from 'react'
-import { BookOpen, Video, Users, Plus, Check, Trash2, ExternalLink, UserPlus, X, Newspaper } from 'lucide-react'
+import { BookOpen, Video, Users, Plus, Check, Trash2, ExternalLink, UserPlus, X, Newspaper, CalendarDays, ChevronLeft, ChevronRight, MapPin, Wifi } from 'lucide-react'
 import AppNav from '../components/AppNav'
 import { api, mediaUrl } from '../lib/api'
-import type { Book, MeetingLink, Profile, Article } from '../types'
+import type { Book, MeetingLink, Profile, Article, ClubEvent } from '../types'
 import { useAuth } from '../context/AuthContext'
 
 const MONTHS = [
@@ -10,7 +10,7 @@ const MONTHS = [
   'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre',
 ]
 
-type Tab = 'books' | 'meeting' | 'members' | 'blog'
+type Tab = 'books' | 'meeting' | 'members' | 'blog' | 'events'
 
 export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState<Tab>('books')
@@ -19,7 +19,8 @@ export default function AdminPanel() {
     { key: 'books'   as Tab, label: 'Libros',   icon: BookOpen  },
     { key: 'meeting' as Tab, label: 'Reunión',  icon: Video     },
     { key: 'members' as Tab, label: 'Miembros', icon: Users     },
-    { key: 'blog'    as Tab, label: 'Blog',     icon: Newspaper },
+    { key: 'blog'    as Tab, label: 'Blog',     icon: Newspaper  },
+    { key: 'events'  as Tab, label: 'Eventos',  icon: CalendarDays },
   ]
 
   return (
@@ -52,6 +53,7 @@ export default function AdminPanel() {
         {activeTab === 'meeting' && <MeetingTab />}
         {activeTab === 'members' && <MembersTab />}
         {activeTab === 'blog'    && <BlogTab />}
+        {activeTab === 'events'  && <EventsTab />}
       </main>
     </div>
   )
@@ -704,6 +706,276 @@ function MembersTab() {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+/* ──────────── EVENTOS ──────────── */
+const DAY_NAMES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']
+
+function EventsTab() {
+  const [events, setEvents]     = useState<ClubEvent[]>([])
+  const [loading, setLoading]   = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [calDate, setCalDate]   = useState(new Date())
+  const [title, setTitle]       = useState('')
+  const [description, setDescription] = useState('')
+  const [date, setDate]         = useState('')
+  const [location, setLocation] = useState('')
+  const [type, setType]         = useState<'virtual' | 'presencial'>('virtual')
+  const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => { loadEvents() }, [])
+
+  async function loadEvents() {
+    const data = await api.get<ClubEvent[]>('/events').catch(() => [])
+    setEvents(data)
+    setLoading(false)
+  }
+
+  async function handleAddEvent(e: React.FormEvent) {
+    e.preventDefault()
+    setSubmitting(true)
+    try {
+      const ev = await api.post<ClubEvent>('/events', { title, description, date, location, type })
+      setEvents(prev => [...prev, ev].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()))
+      setTitle(''); setDescription(''); setDate(''); setLocation('')
+      setType('virtual')
+      setShowForm(false)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function deleteEvent(id: string) {
+    if (!confirm('¿Eliminar este evento?')) return
+    await api.delete(`/events/${id}`)
+    setEvents(prev => prev.filter(ev => ev._id !== id))
+  }
+
+  const year  = calDate.getFullYear()
+  const month = calDate.getMonth()
+  const firstDay   = new Date(year, month, 1).getDay()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const today  = new Date()
+
+  const eventDays = new Set(
+    events
+      .filter(ev => {
+        const d = new Date(ev.date)
+        return d.getFullYear() === year && d.getMonth() === month
+      })
+      .map(ev => new Date(ev.date).getDate())
+  )
+
+  function prefillDate(day: number) {
+    const d = new Date(year, month, day, 18, 0)
+    const pad = (n: number) => String(n).padStart(2, '0')
+    setDate(`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`)
+    setShowForm(true)
+  }
+
+  const upcoming = events.filter(ev => new Date(ev.date) >= today)
+  const past     = events.filter(ev => new Date(ev.date) <  today)
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-white text-lg font-medium">Próximos Eventos</h2>
+        <button
+          onClick={() => setShowForm(v => !v)}
+          className="flex items-center gap-2 bg-white text-black text-sm font-medium rounded-full px-5 py-2 hover:bg-white/90 transition-colors"
+        >
+          <Plus size={15} /> Agregar evento
+        </button>
+      </div>
+
+      {showForm && (
+        <form onSubmit={handleAddEvent} className="liquid-glass rounded-2xl p-6 mb-6 flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <p className="text-white/40 text-xs tracking-widest uppercase">Nuevo evento</p>
+            <button type="button" onClick={() => setShowForm(false)} className="text-white/30 hover:text-white transition-colors">
+              <X size={16} />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-2">
+              <label className="text-white/50 text-xs block mb-1">Título *</label>
+              <input
+                value={title} onChange={e => setTitle(e.target.value)} required
+                placeholder="Ej: Sesión de mayo — Capítulos 1 al 5"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:border-white/30 transition-colors"
+              />
+            </div>
+            <div>
+              <label className="text-white/50 text-xs block mb-1">Fecha y hora *</label>
+              <input
+                type="datetime-local" value={date} onChange={e => setDate(e.target.value)} required
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:border-white/30 transition-colors [color-scheme:dark]"
+              />
+            </div>
+            <div>
+              <label className="text-white/50 text-xs block mb-1">Modalidad</label>
+              <select
+                value={type} onChange={e => setType(e.target.value as 'virtual' | 'presencial')}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:border-white/30 transition-colors"
+              >
+                <option value="virtual"    className="bg-neutral-900">Virtual</option>
+                <option value="presencial" className="bg-neutral-900">Presencial</option>
+              </select>
+            </div>
+            <div className="md:col-span-2">
+              <label className="text-white/50 text-xs block mb-1">Lugar o enlace</label>
+              <input
+                value={location} onChange={e => setLocation(e.target.value)}
+                placeholder={type === 'virtual' ? 'https://meet.google.com/...' : 'Dirección del lugar'}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:border-white/30 transition-colors"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="text-white/50 text-xs block mb-1">Descripción (opcional)</label>
+              <textarea
+                value={description} onChange={e => setDescription(e.target.value)} rows={2}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:border-white/30 transition-colors resize-none"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-3 justify-end pt-2">
+            <button type="button" onClick={() => setShowForm(false)} className="text-white/50 text-sm px-5 py-2 rounded-full hover:text-white transition-colors">
+              Cancelar
+            </button>
+            <button type="submit" disabled={submitting} className="bg-white text-black text-sm font-medium rounded-full px-6 py-2 hover:bg-white/90 transition-colors disabled:opacity-50">
+              {submitting ? 'Guardando...' : 'Guardar evento'}
+            </button>
+          </div>
+        </form>
+      )}
+
+      {/* Calendar */}
+      <div className="liquid-glass rounded-2xl p-5 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <button
+            onClick={() => setCalDate(new Date(year, month - 1, 1))}
+            className="text-white/40 hover:text-white p-1.5 rounded-lg hover:bg-white/5 transition-colors"
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <p className="text-white text-sm font-medium">{MONTHS[month]} {year}</p>
+          <button
+            onClick={() => setCalDate(new Date(year, month + 1, 1))}
+            className="text-white/40 hover:text-white p-1.5 rounded-lg hover:bg-white/5 transition-colors"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-7 mb-1">
+          {DAY_NAMES.map(d => (
+            <div key={d} className="text-center text-white/25 text-xs py-1">{d}</div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-7">
+          {Array.from({ length: firstDay }).map((_, i) => <div key={`blank-${i}`} />)}
+          {Array.from({ length: daysInMonth }).map((_, i) => {
+            const day      = i + 1
+            const isToday  = today.getFullYear() === year && today.getMonth() === month && today.getDate() === day
+            const hasEvent = eventDays.has(day)
+            return (
+              <button
+                key={day}
+                onClick={() => prefillDate(day)}
+                className={`flex flex-col items-center py-1.5 rounded-lg hover:bg-white/5 transition-colors group`}
+                title="Agregar evento en esta fecha"
+              >
+                <span className={`w-7 h-7 flex items-center justify-center rounded-full text-xs transition-colors ${
+                  isToday ? 'bg-white text-black font-semibold' : 'text-white/60 group-hover:text-white'
+                }`}>
+                  {day}
+                </span>
+                {hasEvent && (
+                  <span className="w-1 h-1 rounded-full mt-0.5 flex-shrink-0" style={{ background: '#E40B8A' }} />
+                )}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Events list */}
+      {loading ? (
+        <div className="flex justify-center py-10">
+          <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+        </div>
+      ) : events.length === 0 ? (
+        <div className="text-center py-14">
+          <CalendarDays size={32} className="text-white/10 mx-auto mb-3" />
+          <p className="text-white/30 text-sm">No hay eventos registrados aún.</p>
+          <p className="text-white/20 text-xs mt-1">Haz clic en cualquier día del calendario para agregar uno.</p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {upcoming.length > 0 && (
+            <>
+              <p className="text-white/30 text-xs tracking-widest uppercase mb-1">Próximos</p>
+              {upcoming.map(ev => <EventRow key={ev._id} event={ev} onDelete={deleteEvent} />)}
+            </>
+          )}
+          {past.length > 0 && (
+            <>
+              <p className="text-white/20 text-xs tracking-widest uppercase mt-4 mb-1">Pasados</p>
+              {past.map(ev => <EventRow key={ev._id} event={ev} onDelete={deleteEvent} dim />)}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function EventRow({ event, onDelete, dim = false }: { event: ClubEvent; onDelete: (id: string) => void; dim?: boolean }) {
+  const d = new Date(event.date)
+  const day   = d.getDate()
+  const month = MONTHS[d.getMonth()].slice(0, 3)
+  const time  = d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+
+  return (
+    <div className={`liquid-glass rounded-xl p-4 flex items-center gap-4 ${dim ? 'opacity-40' : ''}`}>
+      <div className="flex-shrink-0 w-12 text-center">
+        <p className="text-white text-lg font-semibold leading-none">{day}</p>
+        <p className="text-white/40 text-xs uppercase mt-0.5">{month}</p>
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-white text-sm font-medium truncate">{event.title}</p>
+        <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+          <span className="text-white/30 text-xs">{time}</span>
+          {event.location && (
+            <span className="flex items-center gap-1 text-white/30 text-xs">
+              {event.type === 'virtual'
+                ? <Wifi size={10} />
+                : <MapPin size={10} />
+              }
+              <span className="truncate max-w-[180px]">{event.location}</span>
+            </span>
+          )}
+          <span className={`text-xs px-2 py-0.5 rounded-full ${
+            event.type === 'virtual'
+              ? 'bg-white/5 text-white/30'
+              : 'bg-white/5 text-white/30'
+          }`}>
+            {event.type === 'virtual' ? 'Virtual' : 'Presencial'}
+          </span>
+        </div>
+      </div>
+      <button
+        onClick={() => onDelete(event._id)}
+        className="text-white/20 hover:text-red-400 p-2 rounded-lg hover:bg-white/5 transition-colors flex-shrink-0"
+        title="Eliminar"
+      >
+        <Trash2 size={16} />
+      </button>
     </div>
   )
 }
